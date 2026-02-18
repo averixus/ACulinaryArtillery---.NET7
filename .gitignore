@@ -363,7 +363,3 @@ MigrationBackup/
 FodyWeavers.xsd
 
 /post-build.bat
-
-# macos
-.DS_Store
-
