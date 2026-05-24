@@ -18,8 +18,9 @@
   ],
   "combustibleProps": {
     "burnTemperature": 800,
-    "burnDuration": 49
+    "burnDuration": 12
   },
+  "materialDensity": 350,
   "shape": { "base": "item/bark/{state}" },
   "textures": { "bark": { "base": "game:block/wood/bark/{bark}" } },
   "maxstacksize": 64,

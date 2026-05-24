@@ -42,6 +42,14 @@
 			},
 			"useFirepitModel": "Wide"
 		},
+        "attachableToEntity": {
+            "categoryCode": "pot",
+            "texturePrefixCode": "saucepan-{color}-fired",
+            "attachedShapeBySlotCode": {
+                "frontrightside": { "base": "aculinaryartillery:item/wearable/hooved/elk/saucepanr" },
+                "frontleftside": { "base": "aculinaryartillery:item/wearable/hooved/elk/saucepanl" }
+            }
+        },
 		"meathookable": true,
 		"meatHookTransform": {
 			"translation": { "x": 0.0, "y": -0.86, "z": 0.05 },
@@ -56,7 +64,7 @@
 		},
 	},
 	"variantgroups": [
-		{ "code": "color", "states": ["blue", "fire", "black", "brown", "cream", "gray", "orange", "red", "tan"] },
+		{ "code": "color", "states": ["blue", "earthyorange", "fire", "black", "brown", "cream", "gray", "orange", "red", "tan"] },
 		{ "code": "type", "states": [ "fired" ] }
 	],
 	"creativeinventory": { "general": ["*"], "decorative": ["*"], "aculinaryartillery": ["*"] },
@@ -75,10 +83,10 @@
 	"liquidSelectable": 1,
 	"lightAbsorption": 0,
 	"sounds": {
-		"place": "game:block/planks",
-		"hit": "game:block/planks",
-		"break": "game:block/planks",
-		"walk": "game:walk/wood"
+      "walk": "game:walk/stone*",
+      "break": "game:block/ceramicbreak",
+      "hit": "game:block/ceramichit",
+      "place": "game:block/ceramicplace"
 	},
 	"collisionbox": {
 		"x1": 0,

@@ -54,7 +54,7 @@ namespace ACulinaryArtillery
             return targetAtlas.UnknownTexturePosition;
         }
 
-        public override void OnCreatedByCrafting(ItemSlot[] allInputslots, ItemSlot outputSlot, GridRecipe byRecipe)
+        public override void OnCreatedByCrafting(ItemSlot[] allInputslots, ItemSlot outputSlot, IRecipeBase byRecipe)
         {
             base.OnCreatedByCrafting(allInputslots, outputSlot, byRecipe);
 
@@ -65,7 +65,7 @@ namespace ACulinaryArtillery
             {
                 if (slot.Itemstack == null) continue;
 
-                CraftingRecipeIngredient? match = byRecipe?.Ingredients?.Values.FirstOrDefault(ing => ing.SatisfiesAsIngredient(slot.Itemstack));
+                IRecipeIngredient? match = byRecipe?.RecipeIngredients?.FirstOrDefault(ing => ing.SatisfiesAsIngredient(slot.Itemstack));
 
                 if (slot.Itemstack.Collectible is ItemExpandedRawFood)
                 {
@@ -87,7 +87,9 @@ namespace ACulinaryArtillery
             if (outputSlot.Itemstack.Collectible is not ItemExpandedLiquid)
             {
                 sat = Array.ConvertAll(sat, i => i / outputSlot.StackSize);
+                outputSlot.Itemstack.Attributes.RemoveAttribute("waterTightContainerProps");
             }
+
             outputSlot.Itemstack.Attributes["expandedSats"] = new FloatArrayAttribute([.. sat]);
         }
 
@@ -104,7 +106,7 @@ namespace ACulinaryArtillery
                     string[]? addIngs = (stack.Attributes["madeWith"] as StringArrayAttribute)?.value;
                     float[]? addSat = (stack.Attributes["expandedSats"] as FloatArrayAttribute)?.value;
 
-                    if (addSat?.Length == 6) sat = [.. sat.Zip(addSat, (x, y) => x + (y * (val.Value.Quantity / (stack.Collectible is ItemExpandedLiquid ? 10 : 1))))];
+                    if (addSat?.Length == 6) sat = [.. sat.Zip(addSat, (x, y) => x + (y * (stack.StackSize / (stack.Collectible is ItemExpandedLiquid ? 10 : 1))))];
                     if (addIngs?.Length > 0) ingredients.AddRange(addIngs);
                 }
                 else
@@ -119,6 +121,7 @@ namespace ACulinaryArtillery
             if (output.Collectible is not ItemExpandedLiquid)
             {
                 sat = Array.ConvertAll(sat, i => i / output.StackSize);
+                output.Attributes.RemoveAttribute("waterTightContainerProps");
             }
             output.Attributes["expandedSats"] = new FloatArrayAttribute([.. sat]);
         }
@@ -347,10 +350,11 @@ namespace ACulinaryArtillery
             return mesh;
         }
 
-        public virtual MeshData? GenMesh(ItemStack stack, ITextureAtlasAPI targetAtlas, BlockPos? atBlockPos = null)
+        public virtual MeshData? GenMesh(ItemSlot slot, ITextureAtlasAPI targetAtlas, BlockPos? atBlockPos = null)
         {
             if (api is not ICoreClientAPI capi) return null;
 
+            ItemStack stack = slot.Itemstack;
             this.targetAtlas = targetAtlas;
             nowTesselatingShape = null;
             var be = api.World.BlockAccessor.GetBlockEntity(atBlockPos);
@@ -364,8 +368,9 @@ namespace ACulinaryArtillery
             return mesh;
         }
 
-        public string GetMeshCacheKey(ItemStack stack)
+        public string GetMeshCacheKey(ItemSlot slot)
         {
+            ItemStack stack = slot.Itemstack;
             string[]? ings = (stack.Attributes?["madeWith"] as StringArrayAttribute)?.value;
             if (ings == null) return Code.ToShortString();
 

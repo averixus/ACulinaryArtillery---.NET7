@@ -167,8 +167,9 @@ namespace ACulinaryArtillery
             return partialShape;
         }
 
-        public MeshData? GenMesh(ItemStack itemstack, ITextureAtlasAPI targetAtlas, BlockPos? forBlockPos = null)
+        public MeshData? GenMesh(ItemSlot slot, ITextureAtlasAPI targetAtlas, BlockPos? forBlockPos = null)
         {
+            ItemStack itemstack =  slot.Itemstack;
             if (forBlockPos != null && GetBlockEntity<BlockEntityBottleRack>(forBlockPos) != null)
             {
                 return GenMesh(api as ICoreClientAPI, GetContent(itemstack), true, forBlockPos);
@@ -176,8 +177,9 @@ namespace ACulinaryArtillery
             return GenMesh(api as ICoreClientAPI, GetContent(itemstack), false, forBlockPos);
         }
 
-        public string GetMeshCacheKey(ItemStack itemstack)
+        public string GetMeshCacheKey(ItemSlot slot)
         {
+            ItemStack itemstack = slot.Itemstack;
             var contentStack = GetContent(itemstack);
             return itemstack.Collectible.Code.ToShortString() + "-" + contentStack?.StackSize + "x" + contentStack?.Collectible.Code.ToShortString();
         }
@@ -241,6 +243,7 @@ namespace ACulinaryArtillery
         public override void OnHeldInteractStart(ItemSlot itemslot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, bool firstEvent, ref EnumHandHandling handHandling)
         {
             //if (api.Side == EnumAppSide.Client) return;
+            if (entitySel != null) return;
             if ((byEntity as EntityPlayer)?.Player is IPlayer plr && blockSel == null && entitySel == null && Variant["type"] == "corked")
             {
                 if (plr.InventoryManager?.OffhandHotbarSlot is ItemSlot offSlot && (offSlot.Empty || offSlot.Itemstack.Collectible.FirstCodePart() == "cork"))
@@ -476,7 +479,7 @@ namespace ACulinaryArtillery
             this.forContents = forContents;
             this.contentTexture = contentTexture;
             this.corkTextPos = capi.BlockTextureAtlas.GetPosition(bottle, "map");
-            this.blockTextPos = capi.BlockTextureAtlas.GetPosition(bottle, "glass");
+            this.blockTextPos = capi.BlockTextureAtlas.GetPosition(bottle, "material");
         }
 
         public TextureAtlasPosition this[string textureCode]
@@ -484,33 +487,30 @@ namespace ACulinaryArtillery
             get
             {
                 if (textureCode == "map" && corkTextPos != null) return corkTextPos;
-                if (textureCode == "glass" && blockTextPos != null) return blockTextPos;
+                if (textureCode == "material" && blockTextPos != null) return blockTextPos;
 
                 if (contentTextPos == null)
                 {
-                    int textureSubId;
-                    textureSubId = ObjectCacheUtil.GetOrCreate(capi, "contenttexture-" + contentTexture?.ToString() ?? "unknowncontent", () =>
+                    int textureSubId = ObjectCacheUtil.GetOrCreate(capi, "contenttexture-" + contentTexture?.ToString() ?? "unknowncontent", () =>
                     {
-                        var id = 0;
-                        var bmp = capi.Assets.TryGet(contentTexture?.Base.CopyWithPathPrefixAndAppendixOnce("textures/", ".png") ?? new AssetLocation("aculinaryartillery:textures/block/unknown.png"))?.ToBitmap(capi);
-
-                        if (bmp != null)
-                        {
-                            if (contentTexture != null && contentTexture.Alpha != 255)
+                        capi.BlockTextureAtlas.GetOrInsertTexture(
+                            contentTexture.Base.CopyWithPathPrefixAndAppendixOnce("textures/", ".png"),
+                            out var id,
+                            out _,
+                            new CreateTextureDelegate(() =>
                             {
-                                bmp.MulAlpha(contentTexture.Alpha);
-                            }
-
-                            capi.BlockTextureAtlas.InsertTexture(bmp, out id, out var texPos);
-                            bmp.Dispose();
-                        }
+                                var bmp = capi.Assets.TryGet(contentTexture.Base.CopyWithPathPrefixAndAppendixOnce("textures/", ".png"))?.ToBitmap(capi);
+                                if (bmp != null && contentTexture.Alpha != 255) bmp.MulAlpha(contentTexture.Alpha);
+                                return bmp;
+                            })
+                        );
                         return id;
                     });
 
                     contentTextPos = capi.BlockTextureAtlas.Positions[textureSubId];
                 }
 
-                return contentTextPos;
+                return contentTextPos ?? blockTextPos;
             }
         }
         public Size2i AtlasSize => capi.BlockTextureAtlas.Size;

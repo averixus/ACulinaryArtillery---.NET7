@@ -50,7 +50,7 @@
 			"meltingDuration": 30,
 			"smeltedRatio": 1,
 			"smeltingType": "fire",
-			"smeltedStack": {"type": "block", "code": "bottle-{material}-blue-fired" },
+			"smeltedStack": {"type": "block", "code": "bottle-{material}-earthyorange-fired" },
 			"requiresContainer": false
 		},
 		"*": {
@@ -65,6 +65,12 @@
 	"maxstacksize": 64,
 	"blockmaterial": "Ceramic",
 	"shape": { "base": "aculinaryartillery:block/bottle/openedbottle" },
+    "sounds": {
+      "walk": "game:walk/stone*",
+      "break": "game:block/ceramicbreak",
+      "hit": "game:block/ceramichit",
+      "place": "game:block/ceramicplace"
+    },
 	"lightAbsorption": 0,
 	"sideopaque": { "all": false },
 	"sideao": { "all": true },
